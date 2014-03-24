@@ -1,0 +1,102 @@
+import components.simplereader.SimpleReader;
+import components.simplereader.SimpleReader1L;
+import components.simplewriter.SimpleWriter;
+import components.simplewriter.SimpleWriter1L;
+import components.xmltree.XMLTree;
+import components.xmltree.XMLTree2;
+
+/**
+ * Using Recursion, Finding the number of operands and whether a tag is present
+ * in an XMLTree.
+ * 
+ * @author Vivek Murahari.
+ */
+public final class XMLTreeRecursion {
+
+    /**
+     * Default constructor--private to prevent instantiation.
+     */
+    private XMLTreeRecursion() {
+        // no code needed here
+    }
+
+    /**
+     * Reports Operand count.
+     * 
+     * @param expr
+     *            XMLTree input argument
+     * @return operCount number of operands in xmltree.
+     * 
+     */
+    public static int operandCount(XMLTree expr) {
+
+        int operCount = 0;
+
+        if (expr.numberOfChildren() == 0) {
+            operCount = 1;
+        } else {
+            if (expr.numberOfChildren() == 1) {
+                operCount = operandCount(expr.child(0));
+            } else {
+                operCount = operandCount(expr.child(0))
+                        + operandCount(expr.child(1));
+            }
+        }
+        return operCount;
+    }
+
+    /**
+     * Reports whether the given tag appears in the given {@code XMLTree}.
+     * 
+     * @param xml
+     *            the {@code XMLTree}
+     * @param tag
+     *            the tag name
+     * @return true if the given tag appears in the given {@code XMLTree}, false
+     *         otherwise
+     * @ensures <pre>
+     * {@code findTag =
+     *    [true if the given tag appears in the given {@code XMLTree}, false otherwise]}
+     * </pre>
+     */
+    private static boolean findTag(XMLTree xml, String tag) {
+
+        boolean isFound = false;
+
+        if (xml.isTag()) {
+            if (xml.label().equals(tag)) {
+                isFound = true;
+            } else {
+                for (int i = 0; i < xml.numberOfChildren(); i++) {
+                    if (xml.child(i).isTag()) {
+                        isFound = findTag(xml.child(i), tag);
+                    }
+                }
+            }
+        }
+
+        return isFound;
+    }
+
+    /**
+     * Main method.
+     * 
+     * @param args
+     *            the command line arguments; unused here
+     */
+    public static void main(String[] args) {
+        SimpleWriter out = new SimpleWriter1L();
+        SimpleReader in = new SimpleReader1L();
+
+        out.println("Enter xmltree name: ");
+        String name = in.nextLine();
+        XMLTree sampleTree = new XMLTree2(name);
+        sampleTree.display();
+        String tag = "mod";
+        out.println(findTag(sampleTree, tag));
+        out.println("Number of Operands: " + operandCount(sampleTree));
+
+        in.close();
+        out.close();
+    }
+}
