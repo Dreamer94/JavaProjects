@@ -1,0 +1,125 @@
+import components.naturalnumber.NaturalNumber;
+import components.naturalnumber.NaturalNumber2;
+import components.simplereader.SimpleReader;
+import components.simplereader.SimpleReader1L;
+import components.simplewriter.SimpleWriter;
+import components.simplewriter.SimpleWriter1L;
+import components.xmltree.XMLTree;
+import components.xmltree.XMLTree1;
+
+/**
+ * Program to evaluate XMLTree expressions of {@code int}.
+ * 
+ * @author Vivek Murahari.
+ * 
+ */
+public final class XMLTreeNNExpressionEvaluator {
+
+    /**
+     * Private constructor so this utility class cannot be instantiated.
+     */
+    private XMLTreeNNExpressionEvaluator() {
+    }
+
+    /**
+     * Prints Error MSG for divide by zero.
+     * 
+     * @param msg
+     *            message printed to console.
+     */
+    public static void fatalErrorToConsole(String msg) {
+        assert msg != null : "Violation of: msg is not null";
+        throw new RuntimeException(msg);
+    }
+
+    /**
+     * Evaluate the given expression.
+     * 
+     * @param exp
+     *            the {@code XMLTree} representing the expression
+     * @return the value of the expression
+     * @requires <pre>
+     * {@code [exp is a subtree of a well-formed XML arithmetic expression]  and
+     *  [the label of the root of exp is not "expression"]}
+     * </pre>
+     * @ensures <pre>
+     * {@code evaluate = [the value of the expression]}
+     * </pre>
+     */
+    private static NaturalNumber evaluate(XMLTree exp) {
+
+        String label = exp.label();
+        NaturalNumber eval = new NaturalNumber2();
+        NaturalNumber temp = new NaturalNumber2();
+        NaturalNumber left;
+        NaturalNumber right;
+        if (exp.numberOfChildren() != 0) {
+            // checks left node for children. If exists, recurses. Else gets value
+            // for side.
+            if (exp.child(0).numberOfChildren() > 0) {
+                left = evaluate(exp.child(0));
+            } else {
+                left = new NaturalNumber2(Integer.parseInt(exp.child(0)
+                        .attributeValue("value")));
+            }
+            // checks right node for children. If exists, recurses. Else gets value
+            // for side.
+            if (exp.child(1).numberOfChildren() > 0) {
+                right = evaluate(exp.child(1));
+            } else {
+                right = new NaturalNumber2(Integer.parseInt(exp.child(1)
+                        .attributeValue("value")));
+            }
+            // Checks operation and does
+            if (exp.label().equals("times")) {
+                temp.copyFrom(left);
+                temp.multiply(right);
+                eval.copyFrom(temp);
+            } else if (label.equals("divide")) {
+                if (!right.isZero()) {
+                    temp.copyFrom(left);
+                    temp.divide(right);
+                    eval.copyFrom(temp);
+                } else {
+                    fatalErrorToConsole("FATAL ERROR: DIVIDE BY ZERO");
+                }
+            } else if (label.equals("plus")) {
+                temp.copyFrom(left);
+                temp.add(right);
+                eval.copyFrom(temp);
+            } else if (label.equals("minus")) {
+                temp.copyFrom(left);
+                temp.subtract(right);
+                eval.copyFrom(temp);
+            }
+        } else {
+            NaturalNumber leaf = new NaturalNumber2(exp.attributeValue("value"));
+            eval.copyFrom(leaf);
+        }
+        return eval;
+    }
+
+    /**
+     * Main method.
+     * 
+     * @param args
+     *            the command line arguments
+     */
+    public static void main(String[] args) {
+        SimpleReader in = new SimpleReader1L();
+        SimpleWriter out = new SimpleWriter1L();
+
+        out.print("Enter the name of an expression XML file: ");
+        String file = in.nextLine();
+        while (!file.equals("")) {
+            XMLTree exp = new XMLTree1(file);
+            out.println(evaluate(exp.child(0)));
+            out.print("Enter the name of an expression XML file: ");
+            file = in.nextLine();
+        }
+
+        in.close();
+        out.close();
+    }
+
+}
