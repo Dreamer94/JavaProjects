@@ -1,0 +1,92 @@
+import java.util.Random;
+
+import components.simplereader.SimpleReader;
+import components.simplereader.SimpleReader1L;
+import components.simplewriter.SimpleWriter;
+import components.simplewriter.SimpleWriter1L;
+
+/**
+ * This project uses de Jager formula to calculate an approximate value closest
+ * to the mean within .01 error.
+ * 
+ * @author Vivek Murahari.
+ * 
+ */
+public final class ABCDGuesser2 {
+
+    /**
+     * Private constructor so this utility class cannot be instantiated.
+     */
+    private ABCDGuesser2() {
+    }
+
+    /**
+     * This is the number 4.
+     */
+    private static final int FOUR = 4;
+    /**
+     * This is the error value.
+     */
+    private static final double ERROR = .01;
+
+    /**
+     * This method returns an estimate to the mean.
+     * 
+     * @param rng
+     *            random number generator
+     * @param fourNumbers
+     *            array contains user input of four numbers.
+     * @param jagerList
+     *            array list of powers to use
+     * @return estimate
+     */
+    public static double estimator(Random rng, int[] fourNumbers,
+            double[] jagerList) {
+        int i = 0;
+        double estimate = 1;
+        while (i < FOUR) {
+            int arrayPos = rng.nextInt(jagerList.length);
+            int oneOfFour = fourNumbers[i];
+            estimate = estimate * Math.pow(oneOfFour, jagerList[arrayPos]);
+            i++;
+        }
+        return estimate;
+    }
+
+    /**
+     * Main method.
+     * 
+     * @param args
+     *            the command line arguments
+     */
+    public static void main(String[] args) {
+        SimpleReader in = new SimpleReader1L();
+        SimpleWriter out = new SimpleWriter1L();
+
+        Random rng = new Random();
+
+        int[] fourNumbers = new int[FOUR];
+        double[] jagerList = { -5, -4, -3, -2, -1, -.5, -.3, -.25, 0, .25, .3,
+                .5, 1, 2, 3, 4, 5 };
+
+        out.print("Enter a constant (int) to be approximated: ");
+        int mean = in.nextInteger();
+        for (int placeHold = 0; placeHold < FOUR; placeHold++) {
+            out.println("Enter a random number: ");
+            fourNumbers[placeHold] = in.nextInteger();
+        }
+
+        double estimate = estimator(rng, fourNumbers, jagerList);
+
+        for (double errorR = 1; errorR > ERROR;) {
+            estimate = estimator(rng, fourNumbers, jagerList);
+            errorR = Math.abs(((estimate - mean) / mean));
+        }
+
+        out.println("This is the mean: " + mean);
+        out.println("This is the estimate of mean: " + (int) estimate);
+
+        in.close();
+        out.close();
+    }
+}
