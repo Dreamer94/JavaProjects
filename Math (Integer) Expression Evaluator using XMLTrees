@@ -1,0 +1,100 @@
+import components.simplereader.SimpleReader;
+import components.simplereader.SimpleReader1L;
+import components.simplewriter.SimpleWriter;
+import components.simplewriter.SimpleWriter1L;
+import components.xmltree.XMLTree;
+import components.xmltree.XMLTree1;
+
+/**
+ * Program to evaluate XMLTree expressions of {@code int}.
+ * 
+ * @author Vivek Murahari.
+ * 
+ */
+public final class XMLTreeIntExpressionEvaluator {
+
+    /**
+     * Private constructor so this utility class cannot be instantiated.
+     */
+    private XMLTreeIntExpressionEvaluator() {
+    }
+
+    /**
+     * Evaluate the given expression.
+     * 
+     * @param exp
+     *            the {@code XMLTree} representing the expression
+     * @return the value of the expression
+     * @requires <pre>
+     * {@code [exp is a subtree of a well-formed XML arithmetic expression]  and
+     *  [the label of the root of exp is not "expression"]}
+     * </pre>
+     * @ensures <pre>
+     * {@code evaluate = [the value of the expression]}
+     * </pre>
+     */
+    private static int evaluate(XMLTree exp) {
+        assert exp != null : "Violation of: exp is not null";
+
+        int eval = 0;
+        /*
+         * Checks if the tree has children.
+         */
+        if (exp.numberOfChildren() != 0) {
+            String label = exp.label();
+            int left;
+            int right;
+            // checks left node for children. If exists, recurses. Else gets value
+            // for side.
+            if (exp.child(0).numberOfChildren() > 0) {
+                left = evaluate(exp.child(0));
+            } else {
+                left = Integer.parseInt(exp.child(0).attributeValue("value"));
+            }
+            // checks right node for children. If exists, recurses. Else gets value
+            // for side.
+            if (exp.child(1).numberOfChildren() > 0) {
+                right = evaluate(exp.child(1));
+            } else {
+                right = Integer.parseInt(exp.child(1).attributeValue("value"));
+            }
+            // checks operations and does them.
+            if (label.equals("times")) {
+                eval = left * right;
+            } else if (label.equals("divide")) {
+                eval = left / right;
+            } else if (label.equals("plus")) {
+                eval = left + right;
+            } else if (label.equals("minus")) {
+                eval = left - right;
+            }
+        } else {
+            eval = Integer.parseInt(exp.attributeValue("value"));
+        }
+        return eval;
+    }
+
+    /**
+     * Main method.
+     * 
+     * @param args
+     *            the command line arguments
+     */
+    public static void main(String[] args) {
+        SimpleReader in = new SimpleReader1L();
+        SimpleWriter out = new SimpleWriter1L();
+
+        out.print("Enter the name of an expression XML file: ");
+        String file = in.nextLine();
+        while (!file.equals("")) {
+            XMLTree exp = new XMLTree1(file);
+            out.println(evaluate(exp.child(0)));
+            out.print("Enter the name of an expression XML file: ");
+            file = in.nextLine();
+        }
+
+        in.close();
+        out.close();
+    }
+
+}
